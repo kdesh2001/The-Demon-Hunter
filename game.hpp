@@ -4,6 +4,7 @@
 #include<bits/stdc++.h>
 #include <SDL2/SDL.h>
 #include<SDL2/SDL_image.h>
+#include<SDL2/SDL_ttf.h>
 #include "player.hpp"
 #include "enemy.hpp"
 using namespace std;
@@ -11,9 +12,16 @@ class Game{
     private:
         SDL_Window *window;
         SDL_Renderer *renderer;
+        SDL_Texture* hlth;
+        SDL_Rect hlth_rect;
+        SDL_Color textColor;
+        SDL_Surface* surfacehlth;
+        TTF_Font* hlthfont;
         Player* player;
-        
+        string player_name,phlth;
         vector<Enemy*> enemies;
+        vector<string> scorelist;
+        fstream fin,fout;
         bool isRunning, showPlayer, isShooting;
         int mx,my,ecount=0;
         long secount=0;
@@ -25,6 +33,7 @@ class Game{
         void display();
         void createEnemy();
         void end();
+        void over();
         bool running(){ return isRunning;};
 };
 

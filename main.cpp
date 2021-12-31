@@ -12,5 +12,7 @@ int main(int argc, char ** argv)
         game->event();
     }
     game->end();
+    //free(game);
+    //game=NULL;
     return 0;
 }

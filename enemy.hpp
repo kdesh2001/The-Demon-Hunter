@@ -7,7 +7,7 @@
 using namespace std;
 class Enemy{
     private:
-        int x,y,px,py,bx,by,scount=401;
+        int x,y,px,py,bx,by,scount=801;
         SDL_Texture* enemytex;
         SDL_Texture* shoottex;
         SDL_Texture* bullettex;
