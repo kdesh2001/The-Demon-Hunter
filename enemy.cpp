@@ -9,6 +9,7 @@ Enemy::Enemy(int xg, int yg, int h, int w){
     x=xg; y=yg; alive=true;
 }
 void Enemy::display(SDL_Renderer* renderer){
+    //Show enemy on screen
     if(alive){
         SDL_Surface * enemysurf = IMG_Load("images/enemy_new.png");
         enemytex = SDL_CreateTextureFromSurface(renderer, enemysurf);
@@ -19,10 +20,11 @@ void Enemy::display(SDL_Renderer* renderer){
 }
 
 pair<int,int> Enemy::showBullet(int xg,int yg, SDL_Renderer* renderer){
+    //Animation to show that enemy is shooting
     if(scount>750){
         scount--;
         px=xg;py=yg;
-        SDL_Surface * bulletsurf = IMG_Load("images/bullet.png");
+        SDL_Surface * bulletsurf = IMG_Load("images/bullet2.png");
         bullettex = SDL_CreateTextureFromSurface(renderer, bulletsurf);
         SDL_FreeSurface(bulletsurf);
         bx=x+45; by=y+125;
@@ -57,10 +59,10 @@ pair<int,int> Enemy::showBullet(int xg,int yg, SDL_Renderer* renderer){
 }
 
 bool Enemy::shooted(int xb,int yb){
+    //If enemy is killed?
     if(xb>x && xb<x+destR.w && yb>y && yb<y+destR.h){
         alive=false;
         SDL_DestroyTexture(enemytex);
-        //SDL_DestroyTexture(shoottex);
         SDL_DestroyTexture(bullettex);
         return true;
     }

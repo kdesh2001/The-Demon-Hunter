@@ -7,6 +7,7 @@ Player::Player(int xg, int yg, int h, int w){
     x=xg; y=yg;
 }
 void Player::display(SDL_Renderer* renderer){
+    //Show player on screen
     SDL_Surface * playersurf = IMG_Load("images/player.png");
     playertex = SDL_CreateTextureFromSurface(renderer, playersurf);
     SDL_FreeSurface(playersurf);
@@ -16,13 +17,14 @@ void Player::display(SDL_Renderer* renderer){
         SDL_RenderCopyEx(renderer, playertex,NULL, &destR,20,NULL,SDL_FLIP_HORIZONTAL);
 }
 void Player::move(int dir){
+    //Move player right or left
     if(destR.x + dir*10 >=0 && destR.x + dir*10 <=750){
         destR.x+=dir*10;
         x+=dir*10;
     }
-    //display(renderer);
 }
 void Player::shoot(int x, int y, SDL_Renderer* renderer){
+    //Animation to display shooting
     SDL_Surface * shootsurf = IMG_Load("images/shoot.png");
     shoottex = SDL_CreateTextureFromSurface(renderer, shootsurf);
     SDL_FreeSurface(shootsurf);
@@ -34,9 +36,10 @@ void Player::shoot(int x, int y, SDL_Renderer* renderer){
 }
 
 bool Player::shooted(int xb, int yb, SDL_Renderer* renderer){
+    //decrease health if shooted
     int cx=x+64, cy=y+125;
-    if(xb>cx-20 && xb<cx+20 && yb>cy-20 && yb<cy+20){
-        health-=50;
+    if(xb>cx-60 && xb<cx+60 && yb>cy-60 && yb<cy+60){
+        health-=1;
         if(health<=0){
             
             return false;

@@ -20,6 +20,8 @@ void Game::start(const char* title, int x, int y, int w, int h, bool fs){
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
         isRunning = true;
 
+        //Creating  start window
+
         SDL_Surface * bgsurf = IMG_Load("images/bg4.png");
         bgtex = SDL_CreateTextureFromSurface(renderer, bgsurf);
         SDL_FreeSurface(bgsurf);
@@ -62,18 +64,37 @@ void Game::start(const char* title, int x, int y, int w, int h, bool fs){
         TTF_Init();
         SDL_Color textColor = { 255, 255, 255};
         TTF_Font* inpfont = TTF_OpenFont("fonts/HandyQuomteRegular-6YLLo.ttf", 40);
-        //TTF_Font* inpfont = TTF_OpenFont("fonts/FallIsComingRegular-Mx9B.ttf", 60);
         if(inpfont==NULL){
             cout<<"This is wrong"<<endl;
         }
         string inputText="";
         SDL_Texture* input;
-        SDL_Rect input_rect; //create a rect
-        input_rect.x = 150;  //controls the rect's x coordinate 
-        input_rect.y = 450; // controls the rect's y coordinte
-        input_rect.w = 100; // controls the width of the rect
-        input_rect.h = 30; // controls the height of the rect
+        SDL_Rect input_rect; 
+        input_rect.x = 150;  
+        input_rect.y = 450; 
+        input_rect.w = 100; 
+        input_rect.h = 30; 
 
+
+        TTF_Font* instfont = TTF_OpenFont("fonts/HandyQuomteRegular-6YLLo.ttf", 30);
+        SDL_Rect inst_rect; 
+            
+        string pinst = "Left click to shoot and use arrow keys to move left or right";
+        SDL_Surface* surfaceinst =TTF_RenderText_Solid(instfont, pinst.c_str(), textColor);
+        inst_rect.w=(surfaceinst->w);
+        inst_rect.h=surfaceinst->h;
+        inst_rect.x = 500 - (inst_rect.w)/2;
+        inst_rect.y = 650 - (inst_rect.h)/2;
+        SDL_Texture* inst = SDL_CreateTextureFromSurface(renderer, surfaceinst);
+        
+        SDL_FreeSurface(surfaceinst);
+
+
+        //Playing sound
+        Mix_OpenAudio(44100,MIX_DEFAULT_FORMAT , 2, 2048);
+        backgroundSound = Mix_LoadMUS("Sounds/sound.mpeg");
+        Mix_PlayMusic(backgroundSound,-1);
+        Mix_Volume(-1,5);
         while(true){
             bool renderText=true;
             SDL_RenderClear(renderer);
@@ -82,15 +103,21 @@ void Game::start(const char* title, int x, int y, int w, int h, bool fs){
             SDL_RenderCopy(renderer, asknametex, NULL, &askname_rect);
             SDL_RenderCopy(renderer, ins1tex, NULL, &ins1_rect);
             SDL_RenderCopy(renderer, ins2tex, NULL, &ins2_rect);
+            SDL_RenderCopy(renderer, inst, NULL, &inst_rect);
 
             SDL_Event event2;
             SDL_PollEvent(&event2);
             if(event2.type==SDL_QUIT){
                 isRunning=false;
-                
-            SDL_DestroyTexture(input);
+                SDL_DestroyTexture(input);
+                SDL_DestroyTexture(titletex);
+                SDL_DestroyTexture(asknametex);
+                SDL_DestroyTexture(ins1tex);
+                SDL_DestroyTexture(ins2tex);
+                SDL_DestroyTexture(inst);
                 return;
             }
+            //Taking name input
             else if(event2.type==SDL_KEYDOWN){
                 if(event2.key.keysym.sym==SDLK_RETURN){
                     SDL_DestroyTexture(input);
@@ -98,6 +125,7 @@ void Game::start(const char* title, int x, int y, int w, int h, bool fs){
                     SDL_DestroyTexture(asknametex);
                     SDL_DestroyTexture(ins1tex);
                     SDL_DestroyTexture(ins2tex);
+                    SDL_DestroyTexture(inst);
                     break;
                 }
                 else if(event2.key.keysym.sym==SDLK_BACKSPACE){
@@ -107,19 +135,19 @@ void Game::start(const char* title, int x, int y, int w, int h, bool fs){
                     using namespace std::this_thread;
                     using namespace std::chrono;
                     sleep_for(200ms);
-                    //cout<<inputText<<endl;
+                    
                     renderText=true;
                 }
             }
             else if(event2.type==SDL_TEXTINPUT){
-                //inputText+=" ";
+                
                 inputText+=event2.text.text;
                 player_name=inputText;
-                //input_rect.w = 14*inputText.length();
+                
                 using namespace std::this_thread;
                 using namespace std::chrono;
                 sleep_for(200ms);
-                //cout<<inputText<<endl;
+                
                 renderText=true;
             }
             if(renderText){
@@ -138,13 +166,12 @@ void Game::start(const char* title, int x, int y, int w, int h, bool fs){
 
             SDL_RenderPresent(renderer);
             
-            //string inputText = "THE DEMON HUNTER";
-            //gInputTextTexture.loadFromRenderedText( inputText.c_str(), textColor );
+           
         }
 
         player = new Player(0,550,250,250);
         hlthfont = TTF_OpenFont("fonts/HandyQuomteRegular-6YLLo.ttf", 30);
-        //enemy = new Enemy(200,200,121,121);
+        
         showPlayer=true; isShooting=false;
     }
     else{
@@ -152,6 +179,7 @@ void Game::start(const char* title, int x, int y, int w, int h, bool fs){
     }
 }
 void Game::event(){
+    //Checks for closing the window, moving the player, shooting
     SDL_Event event;
     SDL_PollEvent(&event);
     switch (event.type)
@@ -195,6 +223,7 @@ void Game::event(){
     }
 }
 void Game::display(){
+    //Rerendering stuff, checking for shoots, hits, kills, scores, health, creates enemy
     SDL_RenderClear(renderer);
     
     SDL_RenderCopy(renderer, bgtex,NULL, NULL);
@@ -202,7 +231,6 @@ void Game::display(){
     player->display(renderer);
     secount++;
     secount=secount%901;
-    //cout<<secount<<endl;
     if(secount==900 && ecount<5){
         secount=0;
         ecount++;
@@ -251,22 +279,35 @@ void Game::display(){
                 over();
                 return;
             }
-            //use this to check collision with player
+            
         }
     }
     SDL_RenderPresent(renderer);
-    //SDL_DestroyTexture(hlth);
+    
     
 }
 
+bool compare_scores(string a, string b){
+    string san,sbn;
+    stringstream A(a);
+    stringstream B(b);
+    getline(A,san,'-');
+    getline(B,sbn,'-');
+    int an=0,bn=0;
+    stringstream sA(san);
+    stringstream sB(sbn);
+    sA>>an; sB>>bn;
+    return (an>bn);
+}
+
 void Game::over(){
+    //Maintain Scores in a file
     fin.open("ScoreSheet.txt",ios::in);
     string t,row;
     scorelist.clear();
-    //if(fin)
+    
     while(fin.peek()!=EOF){
         getline(fin,row);
-        //fin>>row;
         scorelist.push_back(row);
 
     }
@@ -274,32 +315,53 @@ void Game::over(){
     fout.open("ScoreSheet.txt",ios::out);
     string s1=to_string(player->getScore())+"-"+player_name;
     scorelist.push_back(s1);
-    sort(scorelist.begin(), scorelist.end());
+    sort(scorelist.begin(), scorelist.end(),compare_scores);
+    if(scorelist[0]==s1){
+        isHS=true;
+    }
+    else{
+        isHS=false;
+    }
     for(auto i:scorelist){
         fout<<i<<endl;
     }
     fout.close();
+    //Final Screen
     SDL_Color textColor = { 255, 255, 255};
-        TTF_Font* scorefont = TTF_OpenFont("fonts/HandyQuomteRegular-6YLLo.ttf", 50);
-        SDL_Rect score_rect; 
-         
-        //score_rect.w = 342; 
-        //score_rect.h = 72;
-        string pscore = "Score: "+to_string(player->getScore());
-        SDL_Surface* surfacescore =TTF_RenderText_Solid(scorefont, pscore.c_str(), textColor);
-        score_rect.w=(surfacescore->w);
-        score_rect.h=surfacescore->h;
-        score_rect.x = 500 - (score_rect.w)/2;
-        score_rect.y = 200 - (score_rect.h)/2;
-        SDL_Texture* score = SDL_CreateTextureFromSurface(renderer, surfacescore);
+    TTF_Font* hscorefont = TTF_OpenFont("fonts/HandyQuomteRegular-6YLLo.ttf", 50);
+    SDL_Rect hscore_rect; 
         
-        SDL_FreeSurface(surfacescore);
-        free(player);
-        player=NULL;
+    string phscore = "New High Score !";
+    SDL_Surface* surfacehscore =TTF_RenderText_Solid(hscorefont, phscore.c_str(), textColor);
+    hscore_rect.w=(surfacehscore->w);
+    hscore_rect.h=surfacehscore->h;
+    hscore_rect.x = 500 - (hscore_rect.w)/2;
+    hscore_rect.y = 600 - (hscore_rect.h)/2;
+    SDL_Texture* hscore = SDL_CreateTextureFromSurface(renderer, surfacehscore);
+    
+    SDL_FreeSurface(surfacehscore);
+
+
+
+    TTF_Font* scorefont = TTF_OpenFont("fonts/HandyQuomteRegular-6YLLo.ttf", 50);
+    SDL_Rect score_rect; 
+    
+    string pscore = "Score: "+to_string(player->getScore());
+    SDL_Surface* surfacescore =TTF_RenderText_Solid(scorefont, pscore.c_str(), textColor);
+    score_rect.w=(surfacescore->w);
+    score_rect.h=surfacescore->h;
+    score_rect.x = 500 - (score_rect.w)/2;
+    score_rect.y = 200 - (score_rect.h)/2;
+    SDL_Texture* score = SDL_CreateTextureFromSurface(renderer, surfacescore);
+    
+    SDL_FreeSurface(surfacescore);
+    free(player);
+    player=NULL;
     while(true){
         SDL_RenderClear(renderer);
         SDL_RenderCopy(renderer,bgtex,NULL, NULL);
-        
+        if(isHS)
+            SDL_RenderCopy(renderer, hscore, NULL, &hscore_rect);
         SDL_RenderCopy(renderer, score, NULL, &score_rect);
         SDL_RenderPresent(renderer);
         SDL_Event event3;
@@ -321,6 +383,7 @@ void Game::createEnemy(){
 }
 
 void Game::end(){
+    Mix_FreeMusic(backgroundSound);
     SDL_DestroyWindow(window);
     SDL_DestroyRenderer(renderer);
     TTF_Quit();
